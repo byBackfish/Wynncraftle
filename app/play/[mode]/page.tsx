@@ -174,7 +174,9 @@ export default function GameMode() {
 
         const matches = Object.keys(mockStats).reduce((acc, key) => {
           if (key !== 'name') {
-            acc[key] = mockStats[key] === gameState.targetItem!.stats[key];
+            acc[key] =
+              mockStats[key as keyof GameItem] >=
+              gameState.targetItem!.stats[key as keyof GameItem];
           }
           return acc;
         }, {} as Record<string, boolean>);
