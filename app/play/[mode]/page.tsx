@@ -302,7 +302,8 @@ export default function GameMode() {
                 </h3>
                 <div className="grid grid-cols-5 gap-4">
                   {filteredStats.map(([key, value]) => {
-                    let targetValue = gameState.targetItem?.stats[key];
+                    let targetValue =
+                      gameState.targetItem?.stats[key as keyof GameItem];
                     let comparisonIndicator = '';
 
                     let useValue = value;
@@ -310,7 +311,12 @@ export default function GameMode() {
 
                     if (key === 'rarity') {
                       useValue = RarityValues[value.toUpperCase()];
-                      useTargetValue = RarityValues[targetValue.toUpperCase()];
+                      useTargetValue =
+                        RarityValues[
+                          targetValue
+                            ?.toString()
+                            .toUpperCase() as keyof typeof RarityValues
+                        ];
                     }
 
                     if (
