@@ -210,7 +210,7 @@ export default function GameMode() {
   const currentGameMode = GameModes.find((m) => m.id === mode);
 
   return (
-    <main className="min-h-screen bg-[#1a1a1a] text-white p-4">
+    <main className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white p-4">
       <div className="max-w-2xl mx-auto pt-8 pb-16">
         <div className="flex flex-col items-center gap-2 mb-8">
           <a href="/">
