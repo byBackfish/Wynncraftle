@@ -67,6 +67,7 @@ export interface Item {
       max: number;
       raw: number;
     };
+    baseHealth?: number;
   };
   requirements?: {
     level: number;

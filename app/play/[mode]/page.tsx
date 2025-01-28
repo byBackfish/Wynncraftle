@@ -354,6 +354,8 @@ export default function GameMode() {
                           className={`w-16 h-16 font-minecraft text-sm flex items-center justify-center border-2 ${
                             result === GuessResult.CORRECT
                               ? 'bg-[#285c28] border-[#3a7a3a] text-[#7fff7f]'
+                              : result === GuessResult.CLOSE
+                              ? 'bg-[#5c5c28] border-[#7a7a3a] text-[#ffff7f]'
                               : 'bg-[#5c2828] border-[#7a3a3a] text-[#ff7f7f]'
                           }`}
                         >
