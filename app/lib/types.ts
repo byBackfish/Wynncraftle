@@ -40,9 +40,16 @@ export async function fetchItems(): Promise<BaseItem[]> {
   try {
     const response = await fetch(ITEMS_URL, {
       mode: 'no-cors',
+      headers: {
+        'User-Agent': 'Wynncraftle/1.0',
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Sec-Fetch-Site': 'same-origin',
+      },
     });
     if (!response.ok) {
-      throw new Error(`Failed to fetch items: ${response.statusText}`);
+      throw new Error(`Failed to fetch items: ${response}`);
     }
     const data = await response.json();
     console.log('API Response:', data);
