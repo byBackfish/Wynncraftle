@@ -25,7 +25,7 @@ export interface Ingredient extends BaseItem {
   level: number;
 }
 
-const ITEMS_URL = '/ap/proxy';
+const ITEMS_URL = '/api/proxy';
 
 let cachedItems: BaseItem[] | null = null;
 let lastFetchTime = 0;
