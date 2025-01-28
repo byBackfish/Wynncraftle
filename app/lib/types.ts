@@ -38,7 +38,9 @@ export async function fetchItems(): Promise<BaseItem[]> {
   }
 
   try {
-    const response = await fetch(ITEMS_URL);
+    const response = await fetch(ITEMS_URL, {
+      mode: 'no-cors',
+    });
     if (!response.ok) {
       throw new Error(`Failed to fetch items: ${response.statusText}`);
     }
