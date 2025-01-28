@@ -25,7 +25,7 @@ export interface Ingredient extends BaseItem {
   level: number;
 }
 
-const ITEMS_URL = 'https://api.wynncraft.com/v3/item/database?fullResult';
+const ITEMS_URL = '/ap/proxy';
 
 let cachedItems: BaseItem[] | null = null;
 let lastFetchTime = 0;
