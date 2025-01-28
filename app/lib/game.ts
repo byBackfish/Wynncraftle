@@ -86,3 +86,22 @@ export function evaluateGuess(
     return acc;
   }, {} as Record<string, GuessResult>);
 }
+
+export function getItemUrl(item: Item) {
+  if (item.icon?.format == 'skin' && item.icon.value) {
+    return `https://mc-heads.net/head/${item.icon.value}`;
+  }
+
+  if (item.armourType && item.armourMaterial) {
+    const path = `/assets/${item.armourType.toLowerCase()}-${item.armourMaterial?.toLowerCase()}.webp`;
+    return path;
+  }
+
+  if (typeof item?.icon?.value === 'string')
+    return `https://cdn.wynncraft.com/nextgen/itemguide/3.3/${item.icon.value.replaceAll(
+      ':',
+      '_'
+    )}.webp`;
+
+  return `https://cdn.wynncraft.com/nextgen/itemguide/3.3/${item.icon.value.name}.webp`;
+}

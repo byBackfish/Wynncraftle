@@ -6,6 +6,8 @@ import { useParams } from 'next/navigation';
 import { getDailyItem, getItemsForMode, evaluateGuess } from '@/app/lib/game';
 import { GuessResult, type GameMode, GameModes } from '@/app/lib/mode';
 import type { Item } from '@/app/lib/struct';
+import { ItemStats } from '@/app/components/ItemStats';
+import { ItemGuess } from '@/app/components/ItemGuess';
 
 interface GameState {
   guesses: Array<{
@@ -272,13 +274,7 @@ export default function GameMode() {
               type="text"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder={`Search for ${
-                mode === 'weapons'
-                  ? 'a weapon'
-                  : mode === 'gear'
-                  ? 'gear'
-                  : 'an ingredient'
-              }`}
+              placeholder={`Search for ${mode}`}
               className="flex-1 p-3 rounded-none bg-[#2a2a2a] border-2 border-[#3a3a3a] text-white font-minecraft placeholder-gray-500 focus:outline-none focus:border-[#4a4a4a]"
             />
             <button
@@ -291,88 +287,37 @@ export default function GameMode() {
           {suggestions.length > 0 && (
             <div className="absolute w-full mt-1 bg-[#2a2a2a] border-2 border-[#3a3a3a] overflow-hidden z-10 shadow-lg">
               {suggestions.map((item) => (
-                <div
+                <ItemGuess
                   key={item.internalName}
-                  className="p-4 hover:bg-[#3a3a3a] cursor-pointer border-b border-[#3a3a3a] last:border-b-0 transition-colors duration-200"
+                  item={item}
+                  stats={currentGameMode?.stats || {}}
                   onClick={() => handleGuess(item)}
-                >
-                  <h4 className="font-minecraft text-lg mb-4 text-[#ffd700]">
-                    {item.internalName}
-                  </h4>
-                  <div className="grid grid-cols-5 gap-4">
-                    {currentGameMode &&
-                      Object.entries(currentGameMode.stats).map(
-                        ([key, stat]) => (
-                          <div key={key} className="flex flex-col items-center">
-                            <div className="font-minecraft text-xs text-gray-400 mb-2">
-                              {key.charAt(0).toUpperCase() +
-                                key.slice(1).replace(/([A-Z])/g, ' $1')}
-                            </div>
-                            <div className="w-16 h-16 font-minecraft text-sm flex items-center justify-center border-2 bg-[#2a2a2a] border-[#3a3a3a] text-white">
-                              <div className="text-center">
-                                <div>{stat.getValue(item).toString()}</div>
-                              </div>
-                            </div>
-                          </div>
-                        )
-                      )}
-                  </div>
-                </div>
+                  isSuggestion={true}
+                />
               ))}
             </div>
           )}
         </div>
 
         <div className="space-y-4">
-          {[...gameState.guesses].reverse().map((guess, index) => (
-            <div
-              key={index}
-              className="bg-[#2a2a2a] border-2 border-[#3a3a3a] p-4"
-            >
-              <h3 className="text-lg font-minecraft mb-4 text-[#ffd700]">
-                {guess.item.internalName}
-              </h3>
-              <div className="grid grid-cols-5 gap-4">
-                {currentGameMode &&
-                  Object.entries(currentGameMode.stats).map(([key, stat]) => {
-                    const result = guess.results[key];
-                    const value = stat.getValue(guess.item);
-                    let comparisonIndicator = '';
-
-                    if (result === GuessResult.HIGHER) {
-                      comparisonIndicator = '↓';
-                    } else if (result === GuessResult.LOWER) {
-                      comparisonIndicator = '↑';
-                    }
-                    return (
-                      <div key={key} className="flex flex-col items-center">
-                        <div className="font-minecraft text-xs text-gray-400 mb-2">
-                          {key.charAt(0).toUpperCase() +
-                            key.slice(1).replace(/([A-Z])/g, ' $1')}
-                        </div>
-                        <div
-                          className={`w-16 h-16 font-minecraft text-sm flex items-center justify-center border-2 ${
-                            result === GuessResult.CORRECT
-                              ? 'bg-[#285c28] border-[#3a7a3a] text-[#7fff7f]'
-                              : result === GuessResult.CLOSE
-                              ? 'bg-[#5c5c28] border-[#7a7a3a] text-[#ffff7f]'
-                              : 'bg-[#5c2828] border-[#7a3a3a] text-[#ff7f7f]'
-                          }`}
-                        >
-                          <div className="text-center">
-                            <div>{value.toString()}</div>
-                            {!guess.matches[key] && comparisonIndicator && (
-                              <div className="mt-1 font-bold text-sm">
-                                {comparisonIndicator}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+          <div className="mb-4 text-center font-minecraft">
+            <span className="text-gray-400">
+              Guesses: {gameState.guesses.length}
+            </span>
+            {gameState.isCorrect && (
+              <div className="mt-2 text-[#7fff7f] text-xl">
+                🎉 Congratulations! You found the correct item! 🎉
               </div>
-            </div>
+            )}
+          </div>
+          {[...gameState.guesses].reverse().map((guess, index) => (
+            <ItemGuess
+              key={index}
+              item={guess.item}
+              stats={currentGameMode?.stats || {}}
+              results={guess.results}
+              matches={guess.matches}
+            />
           ))}
         </div>
       </div>

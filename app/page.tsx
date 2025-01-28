@@ -3,12 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { GameModes } from '@/app/lib/mode';
-
-const descriptions: Record<string, string> = {
-  weapons: "Guess today's Wynncraft weapon",
-  gear: "Discover today's piece of Wynncraft gear",
-  ingredients: 'Guess the Wynncraft crafting ingredient of today',
-};
+import { Chestplate } from './components/Leather';
 
 export default function Home() {
   return (
@@ -38,9 +33,7 @@ export default function Home() {
                   <h3 className="text-xl font-minecraft text-orange-500">
                     {mode.title}
                   </h3>
-                  <p className="text-gray-400 text-sm">
-                    {descriptions[mode.id]}
-                  </p>
+                  <p className="text-gray-400 text-sm">{mode.description}</p>
                 </div>
               </div>
             </Link>

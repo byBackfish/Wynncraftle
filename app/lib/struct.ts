@@ -17,6 +17,7 @@ export interface Item {
 
   // Variable keys depending on type
   armourMaterial?: string; // For armours
+  armourColor?: string;
   attackSpeed?: string; // For weapons
   averageDps?: number; // For weapons
   gatheringSpeed?: number; // For tools

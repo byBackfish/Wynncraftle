@@ -10,6 +10,7 @@ export enum GuessResult {
 
 export interface GameMode {
   id: string;
+  description: string;
   title: string;
   icon: string;
 
@@ -31,6 +32,16 @@ export enum RarityValues {
   SET = 5,
   FABLED = 6,
   MYTHIC = 7,
+}
+
+export enum AttackSpeedValues {
+  SUPER_SLOW = 1,
+  VERY_SLOW = 2,
+  SLOW = 3,
+  NORMAL = 4,
+  FAST = 5,
+  VERY_FAST = 6,
+  SUPER_FAST = 7,
 }
 
 const evaluateNumbers = (guess: number, target: number): GuessResult => {
@@ -76,12 +87,26 @@ export const GameModes: GameMode[] = [
     id: 'weapons',
     icon: '⚔️',
     title: 'Weapons',
+    description: "Guess today's Wynncraft weapon",
     itemFilter: (item) => item?.type === 'weapon',
     stats: {
       rarity: RarityStat,
       type: TypeStat,
       level: LevelStat,
       powerSlots: PowderSlotsStat,
+      attackSpeed: {
+        name: 'Attack Speed',
+        getValue: (item) => item.attackSpeed?.toUpperCase() ?? 'NORMAL',
+        evaluate: (
+          guess: keyof typeof AttackSpeedValues,
+          target: keyof typeof AttackSpeedValues
+        ): GuessResult => {
+          return evaluateNumbers(
+            AttackSpeedValues[guess],
+            AttackSpeedValues[target]
+          );
+        },
+      },
       averageDps: {
         name: 'Average DPS',
         getValue: (item) => item.averageDps ?? 0,
@@ -92,6 +117,7 @@ export const GameModes: GameMode[] = [
   {
     id: 'armor',
     title: 'Armor',
+    description: "Guess today's Wynncraft armor",
     icon: '🛡',
     itemFilter: (item) => item?.type === 'armour',
     stats: {
@@ -109,6 +135,7 @@ export const GameModes: GameMode[] = [
   {
     id: 'ingredients',
     title: 'Ingredients',
+    description: "Guess today's Wynncraft crafting ingredient",
     icon: '🍳',
     itemFilter: (item) => item?.type === 'ingredient',
     stats: {
