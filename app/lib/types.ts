@@ -24,7 +24,7 @@ export interface Ingredient extends BaseItem {
   type: string;
   level: number;
 }
-const PROXY_URL = 'https://cors-anywhere.herokuapp.com/';
+
 const ITEMS_URL = 'https://api.wynncraft.com/v3/item/database?fullResult';
 
 let cachedItems: BaseItem[] | null = null;
@@ -38,9 +38,7 @@ export async function fetchItems(): Promise<BaseItem[]> {
   }
 
   try {
-    const response = await fetch(PROXY_URL + ITEMS_URL, {
-      mode: 'no-cors',
-    });
+    const response = await fetch(ITEMS_URL);
     if (!response.ok) {
       throw new Error(`Failed to fetch items: ${response}`);
     }
