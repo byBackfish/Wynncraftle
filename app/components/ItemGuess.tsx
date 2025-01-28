@@ -35,11 +35,11 @@ export function ItemGuess({
     : 'bg-[#2a2a2a] border-2 border-[#3a3a3a] p-4';
 
   return (
-    <div className={containerClasses} onClick={onClick}>
+    <div className={`${containerClasses} animate-fade-in`} onClick={onClick}>
       <div className="flex items-center gap-4 mb-4">
         <div className="w-8 h-8">
           {item.armourMaterial === 'leather' && item.armourColor ? (
-            <div className="w-full h-full">
+            <div className="w-full h-full transition-transform duration-300 hover:scale-110">
               {item.armourType === 'helmet' && (
                 <Helmet color={item.armourColor} />
               )}
@@ -57,7 +57,7 @@ export function ItemGuess({
             <img
               src={getItemUrl(item)}
               alt={item.internalName}
-              className="w-full h-full object-contain"
+              className="w-full h-full object-contain transition-transform duration-300 hover:scale-110"
             />
           )}
         </div>

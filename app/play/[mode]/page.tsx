@@ -204,7 +204,9 @@ export default function GameMode() {
   if (isLoading) {
     return (
       <main className="min-h-screen bg-[#1a1a1a] text-white p-4 flex items-center justify-center">
-        <div className="font-minecraft text-[#ffd700]">Loading...</div>
+        <div className="font-minecraft text-[#ffd700] animate-pulse">
+          Loading...
+        </div>
       </main>
     );
   }
@@ -285,7 +287,7 @@ export default function GameMode() {
             </button>
           </div>
           {suggestions.length > 0 && (
-            <div className="absolute w-full mt-1 bg-[#2a2a2a] border-2 border-[#3a3a3a] overflow-hidden z-10 shadow-lg">
+            <div className="absolute w-full mt-1 bg-[#2a2a2a] border-2 border-[#3a3a3a] overflow-hidden z-10 shadow-lg animate-slide-down">
               {suggestions.map((item) => (
                 <ItemGuess
                   key={item.internalName}

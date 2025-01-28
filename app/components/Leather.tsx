@@ -55,20 +55,20 @@ const ArmorCanvas = ({ type, color }: Props) => {
 
         // Draw base texture
         ctx.globalCompositeOperation = 'source-over';
-        ctx.drawImage(textureImage, 0, 0, width * 2, height * 2);
+        ctx.drawImage(textureImage, 0, 0, width * 10, height * 10);
 
         // Apply color
         ctx.globalCompositeOperation = 'multiply';
         ctx.fillStyle = color;
-        ctx.fillRect(0, 0, width * 2, height * 2);
+        ctx.fillRect(0, 0, width * 10, height * 10);
 
         // Mask with texture
         ctx.globalCompositeOperation = 'destination-in';
-        ctx.drawImage(textureImage, 0, 0, width * 2, height * 2);
+        ctx.drawImage(textureImage, 0, 0, width * 10, height * 10);
 
         // Draw overlay
         ctx.globalCompositeOperation = 'source-over';
-        ctx.drawImage(overlayImage, 0, 0, width * 2, height * 2);
+        ctx.drawImage(overlayImage, 0, 0, width * 10, height * 10);
 
         setState('active');
       } catch (error) {

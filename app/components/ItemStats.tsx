@@ -45,13 +45,20 @@ export function ItemStats({ item, stats, results, matches }: ItemStatsProps) {
         }
 
         return (
-          <div key={key} className="flex flex-col items-center">
+          <div
+            key={key}
+            className="flex flex-col items-center opacity-0 animate-pop-in-fast"
+            style={{
+              animationDelay: `${Object.keys(stats).indexOf(key) * 50}ms`,
+              animationFillMode: 'forwards',
+            }}
+          >
             <div className="font-minecraft text-xs text-gray-400 mb-2">
               {key.charAt(0).toUpperCase() +
                 key.slice(1).replace(/([A-Z])/g, ' $1')}
             </div>
             <div
-              className={`w-16 h-16 font-minecraft text-sm flex items-center justify-center border-2 ${colorClasses}`}
+              className={`w-16 h-16 font-minecraft text-sm flex items-center justify-center border-2 transition-all duration-300 ease-in-out ${colorClasses}`}
             >
               <div className="text-center">
                 {format(value).map((line) => (
