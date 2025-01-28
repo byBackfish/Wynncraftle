@@ -61,15 +61,6 @@ const RarityStat: Stat = {
   },
 };
 
-const TypeStat: Stat = {
-  name: 'Type',
-  getValue: (item) => item.weaponType?.toUpperCase() || 'SWORD',
-  evaluate: (guess: string, target: string): GuessResult => {
-    if (guess === target) return GuessResult.CORRECT;
-    return GuessResult.INCORRECT;
-  },
-};
-
 const LevelStat: Stat = {
   name: 'Level',
   getValue: (item) => item.requirements?.level ?? 0,
@@ -91,7 +82,14 @@ export const GameModes: GameMode[] = [
     itemFilter: (item) => item?.type === 'weapon',
     stats: {
       rarity: RarityStat,
-      type: TypeStat,
+      type: {
+        name: 'Type',
+        getValue: (item) => item.weaponType?.toUpperCase() || 'NONE',
+        evaluate: (guess: string, target: string): GuessResult => {
+          if (guess === target) return GuessResult.CORRECT;
+          return GuessResult.INCORRECT;
+        },
+      },
       level: LevelStat,
       powerSlots: PowderSlotsStat,
       attackSpeed: {
@@ -122,7 +120,14 @@ export const GameModes: GameMode[] = [
     itemFilter: (item) => item?.type === 'armour',
     stats: {
       rarity: RarityStat,
-      type: TypeStat,
+      type: {
+        name: 'Type',
+        getValue: (item) => item.armourType?.toUpperCase() || 'NONE',
+        evaluate: (guess: string, target: string): GuessResult => {
+          if (guess === target) return GuessResult.CORRECT;
+          return GuessResult.INCORRECT;
+        },
+      },
       level: LevelStat,
       powderSlots: PowderSlotsStat,
       health: {
