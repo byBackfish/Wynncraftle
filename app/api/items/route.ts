@@ -1,13 +1,20 @@
-export async function GET(req: any) {
+import { Item } from '@/app/lib/struct';
+
+export async function GET(req: Request) {
   const url = 'https://api.wynncraft.com/v3/item/database?fullResult';
 
   try {
     // Fetch data from the external API
     const response = await fetch(url);
-    const data = await response.json();
+    const data: Record<string, Item> = await response.json();
 
     // Return the data with proper CORS headers
-    return new Response(JSON.stringify(data), {
+
+    // data is Record<string, Item>, we want Item[]
+
+    const newData = Object.values(data);
+
+    return new Response(JSON.stringify(newData), {
       status: 200,
       headers: {
         'Content-Type': 'application/json',

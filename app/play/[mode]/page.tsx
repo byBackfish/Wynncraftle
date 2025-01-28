@@ -3,66 +3,49 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 
-import {
-  BaseItem,
-  Weapon,
-  Gear,
-  Ingredient,
-  getDailyItem,
-  fetchItems,
-  filterWeapons,
-  filterGear,
-  filterIngredients,
-} from '@/app/lib/types';
-
-enum RarityValues {
-  COMMON = 1,
-  UNIQUE = 2,
-  RARE = 3,
-  LEGENDARY = 4,
-  SET = 5,
-  FABLED = 6,
-  MYTHIC = 7,
-}
-
-type GameItem = Weapon | Gear | Ingredient;
+import { getDailyItem, getItemsForMode, evaluateGuess } from '@/app/lib/game';
+import { GuessResult, type GameMode, GameModes } from '@/app/lib/mode';
+import type { Item } from '@/app/lib/struct';
 
 interface GameState {
   guesses: Array<{
-    name: string;
-    stats: GameItem;
+    item: Item;
+    results: Record<string, GuessResult>;
     matches: Record<string, boolean>;
+    stats: Record<string, { name: string; value: number }>;
   }>;
   isCorrect: boolean;
-  targetItem: {
-    name: string;
-    stats: GameItem;
-  } | null;
+  targetItem: Item | null;
 }
 
 export default function GameMode() {
-  const { mode } = useParams();
+  const params = useParams();
+  const mode = params.mode as string;
   const [searchInput, setSearchInput] = useState('');
-  const [suggestions, setSuggestions] = useState<GameItem[]>([]);
+  const [suggestions, setSuggestions] = useState<Item[]>([]);
   const [gameState, setGameState] = useState<GameState>({
     guesses: [],
     isCorrect: false,
     targetItem: null,
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [seed, setSeed] = useState<number>(
+    new Date().getDay() * 100 + new Date().getDate()
+  );
+  const [showTarget, setShowTarget] = useState(false);
 
   // Fetch target item on mount
   useEffect(() => {
     const initializeGame = async () => {
       try {
-        const target = await getDailyItem(mode as string);
+        const gameMode = GameModes.find((m) => m.id === mode);
+        if (!gameMode) throw new Error('Invalid game mode');
+
+        const target = await getDailyItem(gameMode);
         console.log('Target Item:', target);
         setGameState((prev) => ({
           ...prev,
-          targetItem: {
-            name: target.name,
-            stats: target as GameItem,
-          },
+          targetItem: target,
         }));
       } catch (error) {
         console.error('Error fetching daily item:', error);
@@ -85,27 +68,15 @@ export default function GameMode() {
       }
 
       try {
-        const items = await fetchItems();
+        const gameMode = GameModes.find((m) => m.id === mode);
+        if (!gameMode) throw new Error('Invalid game mode');
+
+        const items = await getItemsForMode(gameMode);
         if (!isMounted) return;
 
-        let filteredItems: GameItem[];
-        switch (mode) {
-          case 'weapons':
-            filteredItems = filterWeapons(items) as GameItem[];
-            break;
-          case 'gear':
-            filteredItems = filterGear(items) as GameItem[];
-            break;
-          case 'ingredients':
-            filteredItems = filterIngredients(items) as GameItem[];
-            break;
-          default:
-            filteredItems = [];
-        }
-
-        const matchingItems = filteredItems
+        const matchingItems = items
           .filter((item) =>
-            item.name.toLowerCase().includes(searchInput.toLowerCase())
+            item.internalName.toLowerCase().includes(searchInput.toLowerCase())
           )
           .slice(0, 5);
 
@@ -123,103 +94,107 @@ export default function GameMode() {
     };
   }, [searchInput, mode]);
 
-  const handleGuess = async (guessName: string = searchInput) => {
-    if (!gameState.targetItem || !guessName) return;
+  const generateRandomSeed = () => {
+    setSeed(Math.floor(Math.random() * 10000));
+  };
 
-    if (guessName.toLowerCase() === gameState.targetItem.name.toLowerCase()) {
-      const matches = Object.keys(gameState.targetItem.stats).reduce(
-        (acc, key) => {
-          if (key !== 'name') {
-            acc[key] = true;
-          }
-          return acc;
-        },
-        {} as Record<string, boolean>
+  const handleSeedSubmit = async () => {
+    setIsLoading(true);
+    try {
+      const gameMode = GameModes.find((m) => m.id === mode);
+      if (!gameMode) throw new Error('Invalid game mode');
+
+      const target = await getDailyItem(gameMode, seed);
+      setGameState({
+        guesses: [],
+        isCorrect: false,
+        targetItem: target,
+      });
+    } catch (error) {
+      console.error('Error fetching item with seed:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGuess = async (guessItem: Item | null = null) => {
+    if (!gameState.targetItem || (!guessItem && !searchInput)) return;
+
+    try {
+      const gameMode = GameModes.find((m) => m.id === mode);
+      if (!gameMode) throw new Error('Invalid game mode');
+
+      let selectedItem = guessItem;
+      if (!selectedItem) {
+        const items = await getItemsForMode(gameMode);
+        selectedItem =
+          items.find(
+            (item) =>
+              item.internalName.toLowerCase() === searchInput.toLowerCase()
+          ) || null;
+      }
+
+      if (!selectedItem) return;
+
+      const results = evaluateGuess(
+        gameMode,
+        selectedItem,
+        gameState.targetItem
       );
+      const isCorrect = Object.values(results).every(
+        (result) => result === GuessResult.CORRECT
+      );
+
+      const stats: Record<string, { name: string; value: number }> = {};
+      const matches: Record<string, boolean> = {};
+
+      Object.entries(gameMode.stats).forEach(([key, stat]) => {
+        stats[key] = {
+          name: stat.name,
+          value: stat.getValue(selectedItem!),
+        };
+        matches[key] = results[key] === GuessResult.CORRECT;
+      });
 
       setGameState((prev) => ({
         ...prev,
         guesses: [
           ...prev.guesses,
           {
-            name: guessName,
-            stats: gameState.targetItem!.stats,
+            item: selectedItem!,
+            results,
             matches,
+            stats,
           },
         ],
-        isCorrect: true,
+        isCorrect,
       }));
-    } else {
-      try {
-        const items = await fetchItems();
-        let filteredItems: GameItem[];
 
-        switch (mode) {
-          case 'weapons':
-            filteredItems = filterWeapons(items) as GameItem[];
-            break;
-          case 'gear':
-            filteredItems = filterGear(items) as GameItem[];
-            break;
-          case 'ingredients':
-            filteredItems = filterIngredients(items) as GameItem[];
-            break;
-          default:
-            filteredItems = [];
-        }
-
-        const mockStats =
-          filteredItems.find((item) => item.name === guessName) ||
-          filteredItems[Math.floor(Math.random() * filteredItems.length)];
-
-        const matches = Object.keys(mockStats).reduce((acc, key) => {
-          if (key !== 'name') {
-            acc[key] =
-              mockStats[key as keyof GameItem] >=
-              gameState.targetItem!.stats[key as keyof GameItem];
-          }
-          return acc;
-        }, {} as Record<string, boolean>);
-
-        setGameState((prev) => ({
-          ...prev,
-          guesses: [
-            ...prev.guesses,
-            {
-              name: guessName,
-              stats: mockStats,
-              matches,
-            },
-          ],
-          isCorrect: false,
-        }));
-      } catch (error) {
-        console.error('Error processing guess:', error);
-      }
+      setSearchInput('');
+      setSuggestions([]);
+    } catch (error) {
+      console.error('Error processing guess:', error);
     }
-
-    setSearchInput('');
-    setSuggestions([]);
   };
 
-  const renderStats = (stats: GameItem) => {
-    const filteredStats = Object.entries(stats).filter(
-      ([key]) => key !== 'name'
-    );
-    return filteredStats.map(([key]) => (
+  const renderStats = (item: Item) => {
+    const gameMode = GameModes.find((m) => m.id === mode);
+    if (!gameMode) return null;
+
+    return Object.entries(gameMode.stats).map(([key, stat]) => (
       <div key={key} className="font-minecraft text-sm">
-        {key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}
+        {stat.name}
       </div>
     ));
   };
 
-  const renderStatValue = (stats: GameItem) => {
-    const filteredStats = Object.entries(stats).filter(
-      ([key]) => key !== 'name'
-    );
-    return filteredStats.map(([key, value]) => (
+  const renderStatValue = (item: Item) => {
+    const gameMode = GameModes.find((m) => m.id === mode);
+    if (!gameMode) return null;
+
+    return Object.entries(gameMode.stats).map(([key, stat]) => (
       <div key={key} className="font-minecraft text-sm text-gray-300">
-        {value.toString()}
+        {stat.getValue(item).toString()}
       </div>
     ));
   };
@@ -232,6 +207,8 @@ export default function GameMode() {
     );
   }
 
+  const currentGameMode = GameModes.find((m) => m.id === mode);
+
   return (
     <main className="min-h-screen bg-[#1a1a1a] text-white p-4">
       <div className="max-w-2xl mx-auto pt-8 pb-16">
@@ -242,6 +219,51 @@ export default function GameMode() {
             </h1>
           </a>
           <p className="text-xs font-minecraft text-gray-400">Daily Wynndle</p>
+          <div className="flex gap-2 mt-4">
+            <input
+              type="number"
+              value={seed}
+              onChange={(e) => setSeed(parseInt(e.target.value) || 0)}
+              className="w-32 p-2 rounded-none bg-[#2a2a2a] border-2 border-[#3a3a3a] text-white font-minecraft"
+              placeholder="Enter seed"
+            />
+            <button
+              onClick={generateRandomSeed}
+              className="px-4 py-2 bg-[#3a3a3a] hover:bg-[#4a4a4a] font-minecraft transition-colors duration-200 text-[#ffd700]"
+            >
+              Random
+            </button>
+            <button
+              onClick={handleSeedSubmit}
+              className="px-4 py-2 bg-[#3a3a3a] hover:bg-[#4a4a4a] font-minecraft transition-colors duration-200 text-[#ffd700]"
+            >
+              Submit
+            </button>
+          </div>
+          <button
+            onClick={() => setShowTarget(!showTarget)}
+            className="px-4 py-2 mt-2 bg-[#3a3a3a] hover:bg-[#4a4a4a] font-minecraft transition-colors duration-200 text-[#ffd700]"
+          >
+            {showTarget ? 'Hide Target' : 'Reveal Item'}
+          </button>
+          {showTarget && gameState.targetItem && (
+            <div className="mt-4 p-4 bg-[#2a2a2a] border-2 border-[#3a3a3a] w-full max-w-md">
+              <h3 className="text-lg font-minecraft mb-4 text-[#ffd700]">
+                {gameState.targetItem.internalName}
+              </h3>
+              <div className="grid grid-cols-2 gap-4">
+                {currentGameMode &&
+                  Object.entries(currentGameMode.stats).map(([key, stat]) => (
+                    <React.Fragment key={key}>
+                      <div className="font-minecraft text-sm">{stat.name}</div>
+                      <div className="font-minecraft text-sm text-gray-300">
+                        {stat.getValue(gameState.targetItem!).toString()}
+                      </div>
+                    </React.Fragment>
+                  ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="mb-8 relative">
@@ -270,16 +292,30 @@ export default function GameMode() {
             <div className="absolute w-full mt-1 bg-[#2a2a2a] border-2 border-[#3a3a3a] overflow-hidden z-10 shadow-lg">
               {suggestions.map((item) => (
                 <div
-                  key={item.name}
+                  key={item.internalName}
                   className="p-4 hover:bg-[#3a3a3a] cursor-pointer border-b border-[#3a3a3a] last:border-b-0 transition-colors duration-200"
-                  onClick={() => handleGuess(item.name)}
+                  onClick={() => handleGuess(item)}
                 >
-                  <h4 className="font-minecraft text-lg mb-2 text-[#ffd700]">
-                    {item.name}
+                  <h4 className="font-minecraft text-lg mb-4 text-[#ffd700]">
+                    {item.internalName}
                   </h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    {renderStats(item)}
-                    {renderStatValue(item)}
+                  <div className="grid grid-cols-5 gap-4">
+                    {currentGameMode &&
+                      Object.entries(currentGameMode.stats).map(
+                        ([key, stat]) => (
+                          <div key={key} className="flex flex-col items-center">
+                            <div className="font-minecraft text-xs text-gray-400 mb-2">
+                              {key.charAt(0).toUpperCase() +
+                                key.slice(1).replace(/([A-Z])/g, ' $1')}
+                            </div>
+                            <div className="w-16 h-16 font-minecraft text-sm flex items-center justify-center border-2 bg-[#2a2a2a] border-[#3a3a3a] text-white">
+                              <div className="text-center">
+                                <div>{stat.getValue(item).toString()}</div>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      )}
                   </div>
                 </div>
               ))}
@@ -288,47 +324,25 @@ export default function GameMode() {
         </div>
 
         <div className="space-y-4">
-          {[...gameState.guesses].reverse().map((guess, index) => {
-            const filteredStats = Object.entries(guess.stats).filter(
-              ([key]) => key !== 'name'
-            );
-            return (
-              <div
-                key={index}
-                className="bg-[#2a2a2a] border-2 border-[#3a3a3a] p-4"
-              >
-                <h3 className="text-lg font-minecraft mb-4 text-[#ffd700]">
-                  {guess.name}
-                </h3>
-                <div className="grid grid-cols-5 gap-4">
-                  {filteredStats.map(([key, value]) => {
-                    let targetValue =
-                      gameState.targetItem?.stats[key as keyof GameItem];
+          {[...gameState.guesses].reverse().map((guess, index) => (
+            <div
+              key={index}
+              className="bg-[#2a2a2a] border-2 border-[#3a3a3a] p-4"
+            >
+              <h3 className="text-lg font-minecraft mb-4 text-[#ffd700]">
+                {guess.item.internalName}
+              </h3>
+              <div className="grid grid-cols-5 gap-4">
+                {currentGameMode &&
+                  Object.entries(currentGameMode.stats).map(([key, stat]) => {
+                    const result = guess.results[key];
+                    const value = stat.getValue(guess.item);
                     let comparisonIndicator = '';
 
-                    let useValue = value;
-                    let useTargetValue = targetValue;
-
-                    if (key === 'rarity') {
-                      useValue = RarityValues[value.toUpperCase()];
-                      useTargetValue =
-                        RarityValues[
-                          targetValue
-                            ?.toString()
-                            .toUpperCase() as keyof typeof RarityValues
-                        ];
-                    }
-
-                    if (
-                      typeof useValue === 'number' &&
-                      typeof useTargetValue === 'number'
-                    ) {
-                      comparisonIndicator =
-                        useValue < useTargetValue
-                          ? '↑'
-                          : useValue > useTargetValue
-                          ? '↓'
-                          : '';
+                    if (result === GuessResult.HIGHER) {
+                      comparisonIndicator = '↓';
+                    } else if (result === GuessResult.LOWER) {
+                      comparisonIndicator = '↑';
                     }
                     return (
                       <div key={key} className="flex flex-col items-center">
@@ -338,7 +352,7 @@ export default function GameMode() {
                         </div>
                         <div
                           className={`w-16 h-16 font-minecraft text-sm flex items-center justify-center border-2 ${
-                            guess.matches[key]
+                            result === GuessResult.CORRECT
                               ? 'bg-[#285c28] border-[#3a7a3a] text-[#7fff7f]'
                               : 'bg-[#5c2828] border-[#7a3a3a] text-[#ff7f7f]'
                           }`}
@@ -355,10 +369,9 @@ export default function GameMode() {
                       </div>
                     );
                   })}
-                </div>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       </div>
     </main>
