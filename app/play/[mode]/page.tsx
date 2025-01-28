@@ -307,9 +307,11 @@ export default function GameMode() {
               Guesses: {gameState.guesses.length}
             </span>
             {gameState.isCorrect && (
-              <div className="mt-2 text-[#7fff7f] text-xl">
-                🎉 Congratulations! You found the correct item! 🎉
-              </div>
+              <>
+                <div className="mt-2 text-[#7fff7f] text-xl">
+                  🎉 Congratulations! You found the correct item! 🎉
+                </div>
+              </>
             )}
           </div>
           {[...gameState.guesses].reverse().map((guess, index) => (

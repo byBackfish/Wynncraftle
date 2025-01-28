@@ -29,6 +29,11 @@ export default {
           '0%': { transform: 'scale(0.8)', opacity: '0' },
           '100%': { transform: 'scale(1)', opacity: '1' },
         },
+        shake: {
+          '0%, 100%': { transform: 'translateX(0)' },
+          '25%': { transform: 'translateX(-4px)' },
+          '75%': { transform: 'translateX(4px)' },
+        },
       },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-in-out',
@@ -36,6 +41,7 @@ export default {
         pulse: 'pulse 2s ease-in-out infinite',
         'pop-in': 'popIn 0.15s cubic-bezier(0.34, 1.56, 0.64, 1)',
         'pop-in-fast': 'popIn 0.15s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        shake: 'shake 0.3s ease-in-out',
       },
     },
   },

@@ -1,11 +1,11 @@
 'use client';
 
 import React from 'react';
-import { GuessResult } from '@/app/lib/mode';
 import type { Item } from '@/app/lib/struct';
 import { ItemStats } from './ItemStats';
 import { getItemUrl } from '@/app/lib/game';
 import { Helmet, Chestplate, Leggings, Boots } from './Leather';
+import { GuessResult } from '../lib/mode';
 
 interface ItemGuessProps {
   item: Item;
