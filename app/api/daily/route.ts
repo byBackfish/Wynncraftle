@@ -2,9 +2,17 @@ import { NextResponse } from 'next/server';
 import { GameModes } from '@/app/lib/mode';
 import { Item } from '@/app/lib/struct';
 
+import { getItemsFromCache } from '@/app/lib/cache';
+
 async function getAllItems(): Promise<Item[]> {
-  // Use absolute URL with proper error handling
   try {
+    // Try to get items from cache first
+    const cachedItems = await getItemsFromCache();
+    if (cachedItems) {
+      return cachedItems;
+    }
+
+    // If cache is not available, fallback to API call
     const baseUrl = process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
       : 'http://localhost:3000';

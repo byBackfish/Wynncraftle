@@ -1,7 +1,22 @@
 import { GameMode, GuessResult } from './mode';
 import { Item } from './struct';
 
+const CACHE_KEY = 'wynndle_items_cache';
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
 async function getAllItems(): Promise<Item[]> {
+  // Check cache first
+  if (typeof window !== 'undefined') {
+    const cachedData = localStorage.getItem(CACHE_KEY);
+    if (cachedData) {
+      const { items, timestamp } = JSON.parse(cachedData);
+      const now = Date.now();
+      if (now - timestamp < CACHE_DURATION) {
+        return items;
+      }
+    }
+  }
+
   try {
     const res = await fetch('/api/items', {
       headers: {
@@ -13,8 +28,20 @@ async function getAllItems(): Promise<Item[]> {
       throw new Error(`Failed to fetch items: ${res.status}`);
     }
 
-    const data = await res.json();
-    return data;
+    const items = await res.json();
+
+    // Store in cache
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(
+        CACHE_KEY,
+        JSON.stringify({
+          items,
+          timestamp: Date.now(),
+        })
+      );
+    }
+
+    return items;
   } catch (error) {
     console.error('Error fetching items:', error);
     throw error;
