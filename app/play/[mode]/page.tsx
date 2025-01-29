@@ -6,7 +6,6 @@ import { useParams } from 'next/navigation';
 import { getDailyItem, getItemsForMode, evaluateGuess } from '@/app/lib/game';
 import { GuessResult, type GameMode, GameModes } from '@/app/lib/mode';
 import type { Item } from '@/app/lib/struct';
-import { ItemStats } from '@/app/components/ItemStats';
 import { ItemGuess } from '@/app/components/ItemGuess';
 
 interface GameState {

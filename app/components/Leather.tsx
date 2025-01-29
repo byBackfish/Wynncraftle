@@ -5,13 +5,6 @@ interface Props {
   type: keyof typeof Textures.Textures;
   color: string;
 }
-
-const createImageFromBase64 = (base64: string): HTMLImageElement => {
-  const image = new Image();
-  image.src = base64;
-  return image;
-};
-
 const ArmorCanvas = ({ type, color }: Props) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [state, setState] = useState<'loading' | 'active'>('loading');
@@ -50,25 +43,27 @@ const ArmorCanvas = ({ type, color }: Props) => {
           return;
         }
 
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        canvas.width = width;
+        canvas.height = height;
+        ctx.clearRect(0, 0, width, height);
         ctx.imageSmoothingEnabled = false;
 
         // Draw base texture
         ctx.globalCompositeOperation = 'source-over';
-        ctx.drawImage(textureImage, 0, 0, width * 10, height * 10);
+        ctx.drawImage(textureImage, 0, 0);
 
         // Apply color
         ctx.globalCompositeOperation = 'multiply';
         ctx.fillStyle = color;
-        ctx.fillRect(0, 0, width * 10, height * 10);
+        ctx.fillRect(0, 0, width, height);
 
         // Mask with texture
         ctx.globalCompositeOperation = 'destination-in';
-        ctx.drawImage(textureImage, 0, 0, width * 10, height * 10);
+        ctx.drawImage(textureImage, 0, 0);
 
         // Draw overlay
         ctx.globalCompositeOperation = 'source-over';
-        ctx.drawImage(overlayImage, 0, 0, width * 10, height * 10);
+        ctx.drawImage(overlayImage, 0, 0);
 
         setState('active');
       } catch (error) {
@@ -79,9 +74,7 @@ const ArmorCanvas = ({ type, color }: Props) => {
     loadImages();
   }, [color, type]);
 
-  return (
-    <canvas ref={canvasRef} width={64} height={64} className="mx-auto"></canvas>
-  );
+  return <canvas ref={canvasRef} className="mx-auto w-7 h-7"></canvas>;
 };
 
 interface ColorProps {

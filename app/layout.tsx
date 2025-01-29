@@ -5,9 +5,7 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Wynncraftle - A Daily Minecraft Wordle',
-  description:
-    'Play daily Minecraft-themed word guessing games with different modes including Mobs, Blocks, Items, and track your progress in the Bestiary!',
+  title: 'Wynndle - A Daily Minecraft Wordle',
 };
 
 export default function RootLayout({

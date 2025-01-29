@@ -7,6 +7,31 @@ export enum GuessResult {
   LOWER, // Down Arrow but Red
   INCORRECT, // Red
 }
+// border-radius: 50%; background-image: radial-gradient(closest-side, rgb(255, 255, 255) 20%, rgb(41, 41, 41) 80%);
+// border-radius: 50%; background-image: radial-gradient(closest-side, rgb(255, 255, 85) 20%, rgb(41, 41, 41) 80%);
+// border-radius: 50%; background-image: radial-gradient(closest-side, rgb(85, 255, 85) 20%, rgb(41, 41, 41) 80%);
+// border-radius: 50%; background-image: radial-gradient(closest-side, rgb(255, 85, 255) 20%, rgb(41, 41, 41) 80%);
+// border-radius: 50%; background-image: radial-gradient(closest-side, rgb(85, 255, 255) 20%, rgb(41, 41, 41) 80%);
+// border-radius: 50%; background-image: radial-gradient(closest-side, rgb(255, 85, 85) 20%, rgb(41, 41, 41) 80%);
+// border-radius: 50%; background-image: radial-gradient(closest-side, rgb(170, 0, 170) 20%, rgb(41, 41, 41) 80%);
+
+export const RarityDecorators = {
+  rarity: {
+    common: '255, 255, 255',
+    unique: '255, 255, 85',
+    set: '85, 255, 85',
+    rare: '255, 85, 255',
+    legendary: '85, 255, 255',
+    fabled: '255, 85, 85',
+    mythic: '170, 0, 170',
+  },
+  tier: {
+    '0': '255, 255, 255',
+    '1': '255, 255, 187',
+    '2': '255, 255, 136',
+    '3': '255, 255, 85',
+  },
+};
 
 export interface GameMode {
   id: string;
