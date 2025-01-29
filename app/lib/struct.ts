@@ -38,12 +38,7 @@ export interface Item {
     not_touching: number;
   };
   itemOnlyIDs?: {
-    durability_modifier: number;
-    strength_requirement: number;
-    dexterity_requirement: number;
-    intelligence_requirement: number;
-    defence_requirement: number;
-    agility_requirement: number;
+    durabilityModifier: number;
   };
 
   majorIds?: {

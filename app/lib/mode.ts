@@ -116,7 +116,7 @@ export const GameModes: GameMode[] = [
         },
       },
       level: LevelStat,
-      powerSlots: PowderSlotsStat,
+      powderSlots: PowderSlotsStat,
       attackSpeed: {
         name: 'Attack Speed',
         getValue: (item) => item.attackSpeed?.toUpperCase() ?? 'NORMAL',
@@ -192,6 +192,16 @@ export const GameModes: GameMode[] = [
         },
       },
       level: LevelStat,
+      durability: {
+        name: 'Durability',
+        getValue: (item) => (item.itemOnlyIDs?.durabilityModifier ?? 0) / 1000,
+        evaluate: evaluateNumbers,
+      },
+      duration: {
+        name: 'Duration',
+        getValue: (item) => item.consumableOnlyIDs?.duration ?? 0,
+        evaluate: evaluateNumbers,
+      },
     },
   },
 ];
